@@ -1,7 +1,7 @@
-const wi = require("@arcsine/win-info");
 const fp = require("find-process");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 
 const { Client } = require("discord-rpc");
 const client = new Client({ transport: "ipc" });
@@ -21,30 +21,23 @@ async function update() {
         }
     }
 
-    let window;
+    let info = {};
     if (app) {
-        try {
-            window = await wi.getByPid(app.pid);
-        } catch (e) {
-            // ...
-        }
-    }
-    if (window) {
-        const currDir = path.join(window.owner.path, "../../ScoreInfo.json");
+        const currDir = path.join(os.homedir(), "/.musepresenceinfo.json");
         if (fs.existsSync(currDir)) {
             try {
                 const curr = JSON.parse(fs.readFileSync(currDir));
                 // console.log(curr);
-                window.sheet = curr;
-                if (window.sheet.scoreName != lastfile) {
+                info.sheet = curr;
+                if (info.sheet.scoreName != lastfile) {
                     start = new Date();
-                    lastfile = window.sheet.scoreName;
+                    lastfile = info.sheet.scoreName;
                 }
-            } catch(e) {
-                console.log("X Unable to read ScoreInfo.json! Is the file corrupt?")
+            } catch (e) {
+                console.log("X Unable to read .musepresenceinfo.json! Is the file corrupt?")
             }
         } else {
-            console.log("X Whoops! I wasn't able to find the ScoreInfo.json. Did you install the CurrentScoreInfo MuseScore plugin?");
+            console.log("X Whoops! I wasn't able to find the .musepresenceinfo.json. Did you install the DiscordRichPresence MuseScore plugin?");
         }
     }
 
@@ -61,34 +54,34 @@ async function update() {
         appTitle = "MuseScore 4";
     }
 
-    if (window && window.sheet || app && !window && sheetcache) {
-        if (window && window.sheet) sheetcache = window.sheet;
+    if (info && info.sheet || app && !info && sheetcache) {
+        if (info && info.sheet) sheetcache = info.sheet;
         else if (sheetcache) {
-            window = {};
-            window.sheet = sheetcache;
+            info = {};
+            info.sheet = sheetcache;
         }
         var states = [];
-        if (window.sheet.title) states.push(`Title: ${window.sheet.title}`);
-        if (window.sheet.subtitle) states.push(`Subtitle: ${window.sheet.subtitle}`);
-        if (window.sheet.composer) states.push(`Composer: ${window.sheet.composer}`);
-        states.push(`Contains ${window.sheet.nmeasures} Measures`);
-        states.push(`Contains ${window.sheet.npages} Pages`);
+        if (info.sheet.title) states.push(`Title: ${info.sheet.title}`);
+        if (info.sheet.subtitle) states.push(`Subtitle: ${info.sheet.subtitle}`);
+        if (info.sheet.composer) states.push(`Composer: ${info.sheet.composer}`);
+        states.push(`Contains ${info.sheet.nmeasures} Measures`);
+        states.push(`Contains ${info.sheet.npages} Pages`);
         // Possibly unessecary? How does this apply to more than 1 instrument?
         // states.push(`Contains ${window.sheet.nstaves} Staves`);
-        states.push(`Contains ${window.sheet.ntracks} Tracks`);
+        states.push(`Contains ${info.sheet.ntracks} Tracks`);
         
 
         stateindex++;
         if (stateindex >= states.length) stateindex = 0;
 
         client.setActivity({
-            details: `Editing ${window.sheet.scoreName}`,
+            details: `Editing ${info.sheet.scoreName}`,
             state: states[stateindex],
             startTimestamp: start,
             largeImageKey: largeImageKey,
             smallImageKey: smallImageKey,
             largeImageText: appTitle,
-            smallImageText: `Contains ${window.sheet.nmeasures} Measures`
+            smallImageText: `Contains ${info.sheet.nmeasures} Measures`
         }, (app.pid || null));
     } else {
         client.setActivity({

@@ -3,11 +3,11 @@ import MuseScore 1.0
 import FileIO 1.0
 
 MuseScore {
-      description: "A plugin that outputs the current score's information to a text file in the plugins folder"
+      description: "A plugin that displays information about the current score in Discord"
       version: "1.0"
       FileIO {
             id: outfile
-            source: "../plugins/curr.json"
+            source: homePath() + "/.musepresenceinfo.json"
             onError: console.log(msg)
       }
       function makeScoreInfo(cscore) {
